@@ -1,9 +1,12 @@
 package com.yoozoo.sharesdk;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import com.mob.MobSDK;
 
+import com.mob.tools.utils.Hashon;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.text.SimpleDateFormat;
@@ -39,11 +42,6 @@ public class SharesdkPlugin implements MethodCallHandler {
     private static final String PluginMethodShowMenu = "showMenu";
     private static final String PluginMethodOpenMiniProgram = "openMiniProgram";
 
-    private static final String EVENTCHANNEL = "JAVA_TO_FLUTTER";
-    private static EventChannel eventChannel;
-    private EventChannel.EventSink eventSink;
-
-    private static final String TAG = "SHARESDK";
 
     /**
      * Plugin registration.
@@ -51,9 +49,6 @@ public class SharesdkPlugin implements MethodCallHandler {
     public static void registerWith(PluginRegistry.Registrar registrar) {
         final MethodChannel channel = new MethodChannel(registrar.messenger(), "com.yoozoo.mob/sharesdk");
         channel.setMethodCallHandler(new SharesdkPlugin());
-
-        //eventChannel = new EventChannel(registrar.messenger(), EVENTCHANNEL);
-        //eventChannel.setStreamHandler(new SharesdkPlugin());
     }
 
     @Override
@@ -103,12 +98,14 @@ public class SharesdkPlugin implements MethodCallHandler {
     /** 获取版本 **/
     private void getVersion(MethodCall call, Result result) {
         Map<String, Object> map = new HashMap<>();
-        map.put("版本号", "3.6.6");
+        map.put("版本号", "3.6.1");
         result.success(map);
     }
 
     /** 分享 **/
-    private void shareWithArgs(MethodCall call, final Result result) {
+    private void shareWithArgs(MethodCall call, final Result rawResult) {
+        final MethodChannel.Result result = new MethodResultWrapper(rawResult);
+
         String imageUrl = "";
         String imagePath = "";
         String title = "";
@@ -288,7 +285,7 @@ public class SharesdkPlugin implements MethodCallHandler {
         } else if (type.equals("6")) {
             shareParams.setShareType(Platform.SHARE_VIDEO);
         } else if (type.equals("7")) {
-            shareParams.setShareType(platform.SHARE_FILE);
+            shareParams.setShareType(Platform.SHARE_FILE);
         } else if (type.equals("10")) {
             shareParams.setShareType(Platform.SHARE_WXMINIPROGRAM);
         }
@@ -298,7 +295,6 @@ public class SharesdkPlugin implements MethodCallHandler {
                 Map<String, Object> map = new HashMap<>();
                 map.put("state", 1);
                 result.success(map);
-                Log.e(TAG, " onComplete===> " + map);
             }
 
             @Override
@@ -308,15 +304,15 @@ public class SharesdkPlugin implements MethodCallHandler {
 
                 HashMap<String, Object> errorMap = new HashMap<>();
                 if (throwable.getMessage() != null) {
-                    errorMap.put("error", String.valueOf(throwable.getMessage()));
+                    errorMap.put("error", throwable.getMessage());
                 } else if (throwable.getCause() != null) {
                     errorMap.put("error", String.valueOf(throwable.getCause()));
                 } else if (throwable != null) {
                     errorMap.put("error", String.valueOf(throwable));
                 }
                 map.put("error", errorMap);
+
                 result.success(map);
-                Log.e(TAG, " onError===> " + map);
             }
 
             @Override
@@ -324,7 +320,6 @@ public class SharesdkPlugin implements MethodCallHandler {
                 Map<String, Object> map = new HashMap<>();
                 map.put("state", 3);
                 result.success(map);
-                Log.e(TAG, " onCancel===> " + map);
             }
         });
         platform.share(shareParams);
@@ -395,7 +390,9 @@ public class SharesdkPlugin implements MethodCallHandler {
     /**
      * 授权的代码,不返回数据，只返回授权成功与否的结果
      */
-    private void doAuthorize(Platform platform, final Result result) {
+    private void doAuthorize(Platform platform, final Result rawResult) {
+        final MethodChannel.Result result = new MethodResultWrapper(rawResult);
+
         if (platform != null) {
             if (platform.isAuthValid()) {
                 platform.removeAccount(true);
@@ -403,14 +400,10 @@ public class SharesdkPlugin implements MethodCallHandler {
             platform.setPlatformActionListener(new PlatformActionListener() {
                 @Override
                 public void onComplete(Platform platform, int i, HashMap<String, Object> hashMap) {
-                    try {
-                        Map<String, Object> map = new HashMap<>();
-                        map.put("state", 1);
-                        result.success(map);
-                        Log.e(TAG, "doAuthorize onComplete()===> " + map);
-                    } catch (Throwable t) {
-                        Log.e(TAG, "doAuthorize onComplete() catch===> " + t);
-                    }
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("state", 1);
+                    map.put("user", new Hashon().fromJson(platform.getDb().exportData()));
+                    result.success(map);
                 }
 
                 @Override
@@ -420,7 +413,7 @@ public class SharesdkPlugin implements MethodCallHandler {
                     HashMap<String, Object> errorMap = new HashMap<>();
 
                     if (throwable.getMessage() != null) {
-                        errorMap.put("error", String.valueOf(throwable.getMessage()));
+                        errorMap.put("error", throwable.getMessage());
                     } else if (throwable.getCause() != null) {
                         errorMap.put("error", String.valueOf(throwable.getCause()));
                     } else if (throwable != null) {
@@ -428,7 +421,6 @@ public class SharesdkPlugin implements MethodCallHandler {
                     }
                     map.put("error", errorMap);
                     result.success(map);
-                    Log.e(TAG, "doAuthorize onError()===> " + map);
                 }
 
                 @Override
@@ -436,7 +428,6 @@ public class SharesdkPlugin implements MethodCallHandler {
                     Map<String, Object> map = new HashMap<>();
                     map.put("state", 3);
                     result.success(map);
-                    Log.e(TAG, "doAuthorize onCancel()===> " + map);
                     //result.error(null, null, map);
                 }
             });
@@ -562,7 +553,9 @@ public class SharesdkPlugin implements MethodCallHandler {
     }
 
 
-    private void doUserInfo(Platform platform,final Result result) {
+    private void doUserInfo(Platform platform,final Result rawResult) {
+        final MethodChannel.Result result = new MethodResultWrapper(rawResult);
+
         if (platform != null) {
             platform.showUser(null);
             //add 2019.06.13
@@ -584,7 +577,6 @@ public class SharesdkPlugin implements MethodCallHandler {
                     userMap.put("user", hashMap);
                     userMap.put("state", 1);
                     result.success(userMap);
-                    Log.e(TAG, "doUserInfo onComplete" + userMap);
                 }
 
                 @Override
@@ -595,7 +587,7 @@ public class SharesdkPlugin implements MethodCallHandler {
                     HashMap<String, Object> errorMap = new HashMap<>();
 
                     if (throwable.getMessage() != null) {
-                        errorMap.put("error", String.valueOf(throwable.getMessage()));
+                        errorMap.put("error", throwable.getMessage());
                     } else if (throwable.getCause() != null) {
                         errorMap.put("error", String.valueOf(throwable.getCause()));
                     } else if (throwable != null) {
@@ -604,7 +596,6 @@ public class SharesdkPlugin implements MethodCallHandler {
                     map.put("error", errorMap);
                     result.success(map);
                     //result.error(null, null, map);
-                    Log.e(TAG, "doUserInfo onError" + map);
                 }
 
                 @Override
@@ -613,31 +604,53 @@ public class SharesdkPlugin implements MethodCallHandler {
                     map.put("state", 3);
                     result.success(map);
                     //result.error(null, null, map);
-                    Log.e(TAG, "doUserInfo onCancel" + map);
                 }
             });
         }
     }
 
+    // MethodChannel.Result wrapper that responds on the platform thread.
+    private static class MethodResultWrapper implements MethodChannel.Result {
+        private MethodChannel.Result methodResult;
+        private Handler handler;
 
-    /**
-     * java层给flutter层发送消息,写了但是没用到，留着吧
-     * **/
-    // @Override
-    // public void onListen(Object o, EventChannel.EventSink mEventSink) {
-    //     this.eventSink = mEventSink;
-    // }
+        MethodResultWrapper(MethodChannel.Result result) {
+            methodResult = result;
+            handler = new Handler(Looper.getMainLooper());
+        }
 
-    // @Override
-    // public void onCancel(Object o) {
+        @Override
+        public void success(final Object result) {
+            handler.post(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        methodResult.success(result);
+                    }
+                });
+        }
 
-    // }
+        @Override
+        public void error(
+            final String errorCode, final String errorMessage, final Object errorDetails) {
+            handler.post(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        methodResult.error(errorCode, errorMessage, errorDetails);
+                    }
+                });
+        }
 
-    // private void setEventChannel(Object data) {
-    //     if (eventSink != null) {
-    //         eventSink.success(data);
-    //     } else {
-    //         Log.e("FFF", " ===== FlutterEventChannel.eventSink 为空 需要检查一下 ===== ");
-    //     }
-    // }
+        @Override
+        public void notImplemented() {
+            handler.post(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        methodResult.notImplemented();
+                    }
+                });
+        }
+    }
 }

@@ -17,12 +17,12 @@ Pod::Spec.new do |s|
   s.dependency 'Flutter'
   s.dependency 'mob_sharesdk'
   s.dependency 'mob_sharesdk/ShareSDKExtension'
-  s.dependency 'mob_sharesdk/ShareSDKUI'
+#  s.dependency 'mob_sharesdk/ShareSDKUI'
   s.dependency 'mob_sharesdk/ShareSDKPlatforms/QQ'
   s.dependency 'mob_sharesdk/ShareSDKPlatforms/SinaWeibo'
   s.dependency 'mob_sharesdk/ShareSDKPlatforms/WeChat'
-  s.dependency 'mob_sharesdk/ShareSDKPlatforms/Facebook'
-  s.dependency 'mob_sharesdk/ShareSDKPlatforms/Twitter'
+#  s.dependency 'mob_sharesdk/ShareSDKPlatforms/Facebook'
+#  s.dependency 'mob_sharesdk/ShareSDKPlatforms/Twitter'
   s.static_framework = true
 
   s.ios.deployment_target = '8.0'
