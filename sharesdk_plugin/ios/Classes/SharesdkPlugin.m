@@ -2,6 +2,7 @@
 #import <ShareSDK/ShareSDKHeader.h>
 #import <ShareSDKExtension/ShareSDK+Extension.h>
 #import <objc/message.h>
+#import <WechatConnector/WechatConnector.h>
 
 typedef NS_ENUM(NSUInteger, PluginMethod) {
     PluginMethodGetVersion,
@@ -130,17 +131,38 @@ typedef NS_ENUM(NSUInteger, PluginMethod) {
 {
     NSInteger type = [args[@"platform"] integerValue];
     NSDictionary *settings = args[@"settings"];
-    [ShareSDK authorize:type settings:[settings isKindOfClass:NSDictionary.class]?settings:nil onStateChanged:^(SSDKResponseState state, SSDKUser *user, NSError *error) {
-        if (state != SSDKResponseStateBegin && state != SSDKResponseStateUpload)
-        {
+    if (type == SSDKPlatformSubTypeWechatSession && [settings isKindOfClass:[NSDictionary class]] && [[settings allKeys] containsObject:@"appKey"]) {
+        [ShareSDK registPlatforms:^(SSDKRegister *platformsRegister) { //微信
+            [platformsRegister setupWeChatWithAppId:settings[@"appKey"] appSecret:nil];
+        }];
+        [WeChatConnector setRequestAuthTokenOperation:^(NSString *authCode, void (^getUserinfo)(NSString *uid, NSString *token)) {
+            result(@{
+                     @"state":@(1),
+                     @"code":authCode
+                     });
+        }];
+        //先执行auth方法，我们内部会判断，如果appsecret为nil，就会判断执行setRequestAuthTokenOperation
+        [ShareSDK authorize:SSDKPlatformTypeWechat settings:nil onStateChanged:^(SSDKResponseState state, SSDKUser *user, NSError *error) {
             NSDictionary *dic = @{
                                   @"state":@(state),
                                   @"user":user.dictionaryValue?:[NSNull null],
                                   @"error":[self _covertError:error]
                                   };
             result(dic);
-        }
-    }];
+        }];
+    } else {
+        [ShareSDK authorize:type settings:[settings isKindOfClass:NSDictionary.class]?settings:nil onStateChanged:^(SSDKResponseState state, SSDKUser *user, NSError *error) {
+            if (state != SSDKResponseStateBegin && state != SSDKResponseStateUpload)
+            {
+                NSDictionary *dic = @{
+                                      @"state":@(state),
+                                      @"user":user.dictionaryValue?:[NSNull null],
+                                      @"error":[self _covertError:error]
+                                      };
+                result(dic);
+            }
+        }];
+    }
 }
 
 - (void)_hasAuthedWithArgs:(NSNumber *)args result:(FlutterResult)result

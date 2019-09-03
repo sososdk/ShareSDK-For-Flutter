@@ -1,29 +1,33 @@
 package com.yoozoo.sharesdk;
 
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
-import com.mob.MobSDK;
-
-import com.mob.tools.utils.Hashon;
-import org.json.JSONException;
-import org.json.JSONObject;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 import cn.sharesdk.framework.Platform;
 import cn.sharesdk.framework.PlatformActionListener;
 import cn.sharesdk.framework.ShareSDK;
+import cn.sharesdk.framework.authorize.AuthorizeListener;
 import cn.sharesdk.onekeyshare.OnekeyShare;
+import cn.sharesdk.wechat.friends.Wechat;
+import cn.sharesdk.wechat.utils.b;
+import cn.sharesdk.wechat.utils.g;
+import cn.sharesdk.wechat.utils.j;
+import cn.sharesdk.wechat.utils.k;
+import com.mob.MobSDK;
+import com.mob.tools.utils.Hashon;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.PluginRegistry;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * SharesdkPlugin
@@ -378,20 +382,83 @@ public class SharesdkPlugin implements MethodCallHandler {
     }
 
     /** 授权 **/
-    private void authWithArgs(MethodCall call, Result result) {
-        HashMap<String, Object> params = call.arguments();
+    private void authWithArgs(MethodCall call, Result rawResult) {
+      final MethodChannel.Result result = new MethodResultWrapper(rawResult);
+
+      HashMap<String, Object> params = call.arguments();
         String num = String.valueOf(params.get("platform"));
+        Map<String, Object> settings = call.argument("settings");
 
         String platStr = Utils.platName(num);
         Platform platName = ShareSDK.getPlatform(platStr);
-        doAuthorize(platName, result);
+
+        if (platName instanceof Wechat && settings != null && settings.containsKey("appKey")) {
+            String appKey = (String) settings.get("appKey");
+            k var2 = k.a();
+            var2.c(appKey);
+
+            g var3 = new g(platName, 22);
+            var3.a(appKey, null);
+            j var4 = new j(platName);
+            var4.a(var3);
+            var4.a(new AuthorizeListener() {
+                public void onError(Throwable throwable) {
+                  Map<String, Object> map = new HashMap<>();
+                  map.put("state", 2);
+                  HashMap<String, Object> errorMap = new HashMap<>();
+
+                  if (throwable.getMessage() != null) {
+                    errorMap.put("error", throwable.getMessage());
+                  } else if (throwable.getCause() != null) {
+                    errorMap.put("error", String.valueOf(throwable.getCause()));
+                  } else if (throwable != null) {
+                    errorMap.put("error", String.valueOf(throwable));
+                  }
+                  map.put("error", errorMap);
+                  result.success(map);
+                }
+
+                public void onComplete(Bundle values) {
+                  b b = new b(values);
+                  Map<String, Object> map = new HashMap<>();
+                  map.put("state", 1);
+                  map.put("code", b.b);
+                  result.success(map);
+                }
+
+                public void onCancel() {
+                  Map<String, Object> map = new HashMap<>();
+                  map.put("state", 3);
+                  result.success(map);
+                }
+            });
+
+            try {
+                var2.a(var4);
+            } catch (Throwable throwable) {
+              Map<String, Object> map = new HashMap<>();
+              map.put("state", 2);
+              HashMap<String, Object> errorMap = new HashMap<>();
+
+              if (throwable.getMessage() != null) {
+                errorMap.put("error", throwable.getMessage());
+              } else if (throwable.getCause() != null) {
+                errorMap.put("error", String.valueOf(throwable.getCause()));
+              } else if (throwable != null) {
+                errorMap.put("error", String.valueOf(throwable));
+              }
+              map.put("error", errorMap);
+              result.success(map);
+            }
+        } else {
+            doAuthorize(platName, result);
+        }
     }
 
     /**
      * 授权的代码,不返回数据，只返回授权成功与否的结果
      */
-    private void doAuthorize(Platform platform, final Result rawResult) {
-        final MethodChannel.Result result = new MethodResultWrapper(rawResult);
+    private void doAuthorize(Platform platform, final Result result) {
 
         if (platform != null) {
             if (platform.isAuthValid()) {

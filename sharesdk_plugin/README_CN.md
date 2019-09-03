@@ -1,3 +1,23 @@
+# 为了获取微信 `AuthCode` 所以进行了修改
+- [iOS] 修改了 `_authWithArgs` 方法
+- [android] 修改了 `authWithArgs` 方法. 由于 android sdk 没有提供方法,
+  所以需要对部分类进行修改: 
+  - 在 app 的 gradle
+    中添加[jarFilter](https://github.com/nekocode/JarFilterPlugin)插件
+    ```gradle
+    apply plugin: "jar-filter"
+
+    jarFilters {
+      "cn.sharesdk:ShareSDK-Wechat-Core:(.*)" {
+        excludes = [
+            'cn/sharesdk/wechat/utils/WechatHandlerActivity.class',
+            'cn/sharesdk/wechat/utils/j.class',
+            'cn/sharesdk/wechat/utils/k.class',
+        ]
+      }
+    }
+    ```
+
 **文档语言 :** **中文** | **[English](https://github.com/MobClub/ShareSDK-For-Flutter/blob/master/README.md)**
 
 # ShareSDK For Flutter
