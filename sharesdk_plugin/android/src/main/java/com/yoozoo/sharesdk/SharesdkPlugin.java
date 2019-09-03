@@ -419,10 +419,12 @@ public class SharesdkPlugin implements MethodCallHandler {
                 }
 
                 public void onComplete(Bundle values) {
-                  b b = new b(values);
+                  final b b = new b(values);
                   Map<String, Object> map = new HashMap<>();
                   map.put("state", 1);
-                  map.put("code", b.b);
+                  map.put("user", new HashMap<String, String>() {{
+                      put("code", b.b);
+                  }});
                   result.success(map);
                 }
 

@@ -138,7 +138,7 @@ typedef NS_ENUM(NSUInteger, PluginMethod) {
         [WeChatConnector setRequestAuthTokenOperation:^(NSString *authCode, void (^getUserinfo)(NSString *uid, NSString *token)) {
             result(@{
                      @"state":@(1),
-                     @"code":authCode
+                     @"user":@{@"code":authCode}
                      });
         }];
         //先执行auth方法，我们内部会判断，如果appsecret为nil，就会判断执行setRequestAuthTokenOperation
