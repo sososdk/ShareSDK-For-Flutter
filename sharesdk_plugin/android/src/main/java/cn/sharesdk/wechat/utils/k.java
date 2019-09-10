@@ -12,8 +12,8 @@ import android.text.TextUtils;
 import cn.sharesdk.framework.Platform;
 import cn.sharesdk.framework.PlatformActionListener;
 import cn.sharesdk.framework.Platform.ShareParams;
+import cn.sharesdk.framework.utils.SSDKLog;
 import cn.sharesdk.framework.utils.e;
-import cn.sharesdk.framework.utils.f;
 import cn.sharesdk.wechat.friends.Wechat;
 import com.mob.MobSDK;
 import com.mob.tools.network.NetworkHelper;
@@ -79,7 +79,7 @@ public class k {
     String var5 = "com.tencent.mm";
     int var6 = (Integer)var2.get("scene", Integer.class);
     String var7 = var6 == 1 ? "com.tencent.mm.ui.tools.ShareToTimeLineUI" : "com.tencent.mm.ui.tools.ShareImgUI";
-    f var8 = new f();
+    e var8 = new e();
     var8.a(var5, var7);
     var8.a(var2, var4);
     HashMap var9 = new HashMap();
@@ -109,163 +109,163 @@ public class k {
     String var16;
     String var17;
     switch(var5) {
-    case 1:
-      this.a(var6, var7, var8, var1);
-      break;
-    case 2:
-      if (var9 != null && var9.length() > 0) {
-        this.a(MobSDK.getContext(), var6, var7, var9, var8, var1);
-      } else if (var11 != null && !var11.isRecycled()) {
-        this.a(MobSDK.getContext(), var6, var7, var11, var8, var1);
-      } else if (var10 != null && var10.length() > 0) {
-        var16 = BitmapHelper.downloadBitmap(MobSDK.getContext(), var10);
-        this.a(MobSDK.getContext(), var6, var7, var16, var8, var1);
-      } else {
-        this.a(MobSDK.getContext(), var6, var7, "", var8, var1);
-      }
-      break;
-    case 3:
-    case 10:
-    default:
-      if (var4 != null) {
-        IllegalArgumentException var22 = new IllegalArgumentException("shareType = " + var5);
-        var4.onError(var2, 9, var22);
-      }
-      break;
-    case 4:
-      var16 = var2.getShortLintk(var13, false);
-      var1.a().setUrl(var16);
-      if (var9 != null && var9.length() > 0) {
-        this.b(MobSDK.getContext(), var6, var7, var16, var9, var8, var1);
-      } else if (var11 != null && !var11.isRecycled()) {
-        this.b(MobSDK.getContext(), var6, var7, var16, var11, var8, var1);
-      } else if (var10 != null && var10.length() > 0) {
-        var17 = BitmapHelper.downloadBitmap(MobSDK.getContext(), var10);
-        this.b(MobSDK.getContext(), var6, var7, var16, var17, var8, var1);
-      } else {
-        this.b(MobSDK.getContext(), var6, var7, var16, "", var8, var1);
-      }
-      break;
-    case 5:
-      var16 = var12 + " " + var13;
-      var17 = var2.getShortLintk(var16, false);
-      String var18 = var17.split(" ")[0];
-      String var19 = var17.split(" ")[1];
-      if (var9 != null && var9.length() > 0) {
-        this.a(MobSDK.getContext(), var6, var7, var18, var19, var9, var8, var1);
-      } else if (var11 != null && !var11.isRecycled()) {
-        this.a(MobSDK.getContext(), var6, var7, var18, var19, var11, var8, var1);
-      } else if (var10 != null && var10.length() > 0) {
-        String var20 = BitmapHelper.downloadBitmap(MobSDK.getContext(), var10);
-        this.a(MobSDK.getContext(), var6, var7, var18, var19, var20, var8, var1);
-      } else {
-        this.a(MobSDK.getContext(), var6, var7, var18, var19, "", var8, var1);
-      }
-      break;
-    case 6:
-      var16 = var2.getShortLintk(var13, false);
-      var1.a().setUrl(var16);
-      if (var9 != null && var9.length() > 0) {
-        this.a(MobSDK.getContext(), var6, var7, var16, var9, var8, var1);
-      } else if (var11 != null && !var11.isRecycled()) {
-        this.a(MobSDK.getContext(), var6, var7, var16, var11, var8, var1);
-      } else if (var10 != null && var10.length() > 0) {
-        var17 = BitmapHelper.downloadBitmap(MobSDK.getContext(), var10);
-        this.a(MobSDK.getContext(), var6, var7, var16, var17, var8, var1);
-      } else {
-        this.a(MobSDK.getContext(), var6, var7, var16, "", var8, var1);
-      }
-      break;
-    case 7:
-      if (var8 == 1) {
-        throw new Throwable("WechatMoments does not support SAHRE_APP");
-      }
+      case 1:
+        this.a(var6, var7, var8, var1);
+        break;
+      case 2:
+        if (var9 != null && var9.length() > 0) {
+          this.a(MobSDK.getContext(), var6, var7, var9, var8, var1);
+        } else if (var11 != null && !var11.isRecycled()) {
+          this.a(MobSDK.getContext(), var6, var7, var11, var8, var1);
+        } else if (var10 != null && var10.length() > 0) {
+          var16 = BitmapHelper.downloadBitmap(MobSDK.getContext(), var10);
+          this.a(MobSDK.getContext(), var6, var7, var16, var8, var1);
+        } else {
+          this.a(MobSDK.getContext(), var6, var7, "", var8, var1);
+        }
+        break;
+      case 3:
+      case 10:
+      default:
+        if (var4 != null) {
+          IllegalArgumentException var22 = new IllegalArgumentException("shareType = " + var5);
+          var4.onError(var2, 9, var22);
+        }
+        break;
+      case 4:
+        var16 = var2.getShortLintk(var13, false);
+        var1.a().setUrl(var16);
+        if (var9 != null && var9.length() > 0) {
+          this.b(MobSDK.getContext(), var6, var7, var16, var9, var8, var1);
+        } else if (var11 != null && !var11.isRecycled()) {
+          this.b(MobSDK.getContext(), var6, var7, var16, var11, var8, var1);
+        } else if (var10 != null && var10.length() > 0) {
+          var17 = BitmapHelper.downloadBitmap(MobSDK.getContext(), var10);
+          this.b(MobSDK.getContext(), var6, var7, var16, var17, var8, var1);
+        } else {
+          this.b(MobSDK.getContext(), var6, var7, var16, "", var8, var1);
+        }
+        break;
+      case 5:
+        var16 = var12 + " " + var13;
+        var17 = var2.getShortLintk(var16, false);
+        String var18 = var17.split(" ")[0];
+        String var19 = var17.split(" ")[1];
+        if (var9 != null && var9.length() > 0) {
+          this.a(MobSDK.getContext(), var6, var7, var18, var19, var9, var8, var1);
+        } else if (var11 != null && !var11.isRecycled()) {
+          this.a(MobSDK.getContext(), var6, var7, var18, var19, var11, var8, var1);
+        } else if (var10 != null && var10.length() > 0) {
+          String var20 = BitmapHelper.downloadBitmap(MobSDK.getContext(), var10);
+          this.a(MobSDK.getContext(), var6, var7, var18, var19, var20, var8, var1);
+        } else {
+          this.a(MobSDK.getContext(), var6, var7, var18, var19, "", var8, var1);
+        }
+        break;
+      case 6:
+        var16 = var2.getShortLintk(var13, false);
+        var1.a().setUrl(var16);
+        if (var9 != null && var9.length() > 0) {
+          this.a(MobSDK.getContext(), var6, var7, var16, var9, var8, var1);
+        } else if (var11 != null && !var11.isRecycled()) {
+          this.a(MobSDK.getContext(), var6, var7, var16, var11, var8, var1);
+        } else if (var10 != null && var10.length() > 0) {
+          var17 = BitmapHelper.downloadBitmap(MobSDK.getContext(), var10);
+          this.a(MobSDK.getContext(), var6, var7, var16, var17, var8, var1);
+        } else {
+          this.a(MobSDK.getContext(), var6, var7, var16, "", var8, var1);
+        }
+        break;
+      case 7:
+        if (var8 == 1) {
+          throw new Throwable("WechatMoments does not support SAHRE_APP");
+        }
 
-      if (var8 == 2) {
-        throw new Throwable("WechatFavorite does not support SAHRE_APP");
-      }
+        if (var8 == 2) {
+          throw new Throwable("WechatFavorite does not support SAHRE_APP");
+        }
 
-      if (var9 != null && var9.length() > 0) {
-        this.b(MobSDK.getContext(), var6, var7, var14, var15, var9, var8, var1);
-      } else if (var11 != null && !var11.isRecycled()) {
-        this.b(MobSDK.getContext(), var6, var7, var14, var15, var11, var8, var1);
-      } else if (var10 != null && var10.length() > 0) {
-        var16 = BitmapHelper.downloadBitmap(MobSDK.getContext(), var10);
-        this.b(MobSDK.getContext(), var6, var7, var14, var15, var16, var8, var1);
-      } else {
-        this.b(MobSDK.getContext(), var6, var7, var14, var15, "", var8, var1);
-      }
-      break;
-    case 8:
-      if (var8 == 1) {
-        throw new Throwable("WechatMoments does not support SHARE_FILE");
-      }
+        if (var9 != null && var9.length() > 0) {
+          this.b(MobSDK.getContext(), var6, var7, var14, var15, var9, var8, var1);
+        } else if (var11 != null && !var11.isRecycled()) {
+          this.b(MobSDK.getContext(), var6, var7, var14, var15, var11, var8, var1);
+        } else if (var10 != null && var10.length() > 0) {
+          var16 = BitmapHelper.downloadBitmap(MobSDK.getContext(), var10);
+          this.b(MobSDK.getContext(), var6, var7, var14, var15, var16, var8, var1);
+        } else {
+          this.b(MobSDK.getContext(), var6, var7, var14, var15, "", var8, var1);
+        }
+        break;
+      case 8:
+        if (var8 == 1) {
+          throw new Throwable("WechatMoments does not support SHARE_FILE");
+        }
 
-      if (var9 != null && var9.length() > 0) {
-        this.c(MobSDK.getContext(), var6, var7, var14, var9, var8, var1);
-      } else if (var11 != null && !var11.isRecycled()) {
-        this.c(MobSDK.getContext(), var6, var7, var14, var11, var8, var1);
-      } else if (var10 != null && var10.length() > 0) {
-        var16 = BitmapHelper.downloadBitmap(MobSDK.getContext(), var10);
-        this.c(MobSDK.getContext(), var6, var7, var14, var16, var8, var1);
-      } else {
-        this.c(MobSDK.getContext(), var6, var7, var14, "", var8, var1);
-      }
-      break;
-    case 9:
-      if (var8 == 1) {
-        throw new Throwable("WechatMoments does not support SHARE_EMOJI");
-      }
+        if (var9 != null && var9.length() > 0) {
+          this.c(MobSDK.getContext(), var6, var7, var14, var9, var8, var1);
+        } else if (var11 != null && !var11.isRecycled()) {
+          this.c(MobSDK.getContext(), var6, var7, var14, var11, var8, var1);
+        } else if (var10 != null && var10.length() > 0) {
+          var16 = BitmapHelper.downloadBitmap(MobSDK.getContext(), var10);
+          this.c(MobSDK.getContext(), var6, var7, var14, var16, var8, var1);
+        } else {
+          this.c(MobSDK.getContext(), var6, var7, var14, "", var8, var1);
+        }
+        break;
+      case 9:
+        if (var8 == 1) {
+          throw new Throwable("WechatMoments does not support SHARE_EMOJI");
+        }
 
-      if (var8 == 2) {
-        throw new Throwable("WechatFavorite does not support SHARE_EMOJI");
-      }
+        if (var8 == 2) {
+          throw new Throwable("WechatFavorite does not support SHARE_EMOJI");
+        }
 
-      if (var9 != null && var9.length() > 0) {
-        this.b(MobSDK.getContext(), var6, var7, var9, var8, var1);
-      } else if (var10 != null && var10.length() > 0) {
-        NetworkHelper var21 = new NetworkHelper();
-        var17 = var21.downloadCache(MobSDK.getContext(), var10, "images", true, (NetworkTimeOut)null);
-        this.b(MobSDK.getContext(), var6, var7, var17, var8, var1);
-      } else if (var11 != null && !var11.isRecycled()) {
-        this.b(MobSDK.getContext(), var6, var7, var11, var8, var1);
-      } else {
-        this.b(MobSDK.getContext(), var6, var7, "", var8, var1);
-      }
-      break;
-    case 11:
-      if (var8 == 1) {
-        throw new Throwable("WechatMoments does not support SAHRE_WXMINIPROGRAM");
-      }
+        if (var9 != null && var9.length() > 0) {
+          this.b(MobSDK.getContext(), var6, var7, var9, var8, var1);
+        } else if (var10 != null && var10.length() > 0) {
+          NetworkHelper var21 = new NetworkHelper();
+          var17 = var21.downloadCache(MobSDK.getContext(), var10, "images", true, (NetworkTimeOut)null);
+          this.b(MobSDK.getContext(), var6, var7, var17, var8, var1);
+        } else if (var11 != null && !var11.isRecycled()) {
+          this.b(MobSDK.getContext(), var6, var7, var11, var8, var1);
+        } else {
+          this.b(MobSDK.getContext(), var6, var7, "", var8, var1);
+        }
+        break;
+      case 11:
+        if (var8 == 1) {
+          throw new Throwable("WechatMoments does not support SAHRE_WXMINIPROGRAM");
+        }
 
-      if (var8 == 2) {
-        throw new Throwable("WechatFavorite does not support SAHRE_WXMINIPROGRAM");
-      }
+        if (var8 == 2) {
+          throw new Throwable("WechatFavorite does not support SAHRE_WXMINIPROGRAM");
+        }
 
-      if (TextUtils.isEmpty(this.d)) {
-        var4.onError(var2, 9, new Throwable("checkArgs fail, UserName or Path is invalid"));
-        return;
-      }
+        if (TextUtils.isEmpty(this.d)) {
+          var4.onError(var2, 9, new Throwable("checkArgs fail, UserName or Path is invalid"));
+          return;
+        }
 
-      var16 = var2.getShortLintk(var13, false);
-      var1.a().setUrl(var16);
-      if (var9 != null && var9.length() > 0) {
-        this.a(MobSDK.getContext(), var16, this.d, this.e, var6, var7, var9, var8, var1);
-      } else if (var11 != null && !var11.isRecycled()) {
-        this.a(MobSDK.getContext(), var16, this.d, this.e, var6, var7, var11, var8, var1);
-      } else if (var10 != null && var10.length() > 0) {
-        var17 = BitmapHelper.downloadBitmap(MobSDK.getContext(), var10);
-        this.a(MobSDK.getContext(), var16, this.d, this.e, var6, var7, var17, var8, var1);
-      } else {
-        this.a(MobSDK.getContext(), var16, this.d, this.e, var6, var7, "", var8, var1);
-      }
-      break;
-    case 12:
-      if (!TextUtils.isEmpty(this.d) && !TextUtils.isEmpty(this.e)) {
-        this.a(this.d, this.e);
-      } else {
-        var4.onError(var2, 9, new Throwable("checkArgs fail, UserName or Path is invalid"));
-      }
+        var16 = var2.getShortLintk(var13, false);
+        var1.a().setUrl(var16);
+        if (var9 != null && var9.length() > 0) {
+          this.a(MobSDK.getContext(), var16, this.d, this.e, var6, var7, var9, var8, var1);
+        } else if (var11 != null && !var11.isRecycled()) {
+          this.a(MobSDK.getContext(), var16, this.d, this.e, var6, var7, var11, var8, var1);
+        } else if (var10 != null && var10.length() > 0) {
+          var17 = BitmapHelper.downloadBitmap(MobSDK.getContext(), var10);
+          this.a(MobSDK.getContext(), var16, this.d, this.e, var6, var7, var17, var8, var1);
+        } else {
+          this.a(MobSDK.getContext(), var16, this.d, this.e, var6, var7, "", var8, var1);
+        }
+        break;
+      case 12:
+        if (!TextUtils.isEmpty(this.d) && !TextUtils.isEmpty(this.e)) {
+          this.a(this.d, this.e);
+        } else {
+          var4.onError(var2, 9, new Throwable("checkArgs fail, UserName or Path is invalid"));
+        }
     }
 
   }
@@ -570,7 +570,7 @@ public class k {
       var3.close();
       return var3.toByteArray();
     } catch (Throwable var6) {
-      cn.sharesdk.framework.utils.e.b().d(var6);
+      SSDKLog.b().d(var6);
       return null;
     }
   }
@@ -676,7 +676,7 @@ public class k {
     try {
       var7 = Class.forName(var6);
     } catch (Throwable var10) {
-      cn.sharesdk.framework.utils.e.b().d(var10);
+      SSDKLog.b().d(var10);
       var7 = null;
     }
 

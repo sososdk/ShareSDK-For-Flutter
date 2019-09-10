@@ -9,7 +9,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import cn.sharesdk.framework.utils.e;
+import cn.sharesdk.framework.utils.SSDKLog;
 
 public class WechatHandlerActivity extends Activity {
   public WechatHandlerActivity() {
@@ -45,7 +45,7 @@ public class WechatHandlerActivity extends Activity {
       try {
         k.a().a(this);
       } catch (Throwable var3) {
-        e.b().d(var3);
+        SSDKLog.b().d(var3);
       }
     }
 

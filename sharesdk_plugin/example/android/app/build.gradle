@@ -22,8 +22,19 @@ if (flutterVersionName == null) {
 }
 
 apply plugin: 'com.android.application'
+apply plugin: 'jar-filter'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 apply from: '../MobSDK.gradle'
+
+jarFilters {
+    "cn.sharesdk:ShareSDK-Wechat-Core:(.*)" {
+        excludes = [
+            'cn/sharesdk/wechat/utils/WechatHandlerActivity.class',
+            'cn/sharesdk/wechat/utils/j.class',
+            'cn/sharesdk/wechat/utils/k.class',
+        ]
+    }
+}
 
 android {
     compileSdkVersion 27
