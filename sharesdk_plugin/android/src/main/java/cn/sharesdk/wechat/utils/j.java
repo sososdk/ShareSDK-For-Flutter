@@ -7,8 +7,8 @@ package cn.sharesdk.wechat.utils;
 
 import android.os.Bundle;
 import cn.sharesdk.framework.Platform;
-import cn.sharesdk.framework.Platform.ShareParams;
 import cn.sharesdk.framework.PlatformActionListener;
+import cn.sharesdk.framework.Platform.ShareParams;
 import cn.sharesdk.framework.authorize.AuthorizeListener;
 import com.mob.tools.utils.Hashon;
 import java.util.HashMap;
@@ -40,7 +40,7 @@ public class j {
   public void a(WechatResp var1) {
     HashMap var2;
     Throwable var3;
-    switch (var1.f) {
+    switch(var1.f) {
       case -5:
       case -1:
       default:
@@ -64,7 +64,7 @@ public class j {
         var2.put("errStr", var1.g);
         var2.put("transaction", var1.h);
         var3 = new Throwable((new Hashon()).fromHashMap(var2));
-        switch (var1.a()) {
+        switch(var1.a()) {
           case 1:
             if (this.d != null) {
               this.d.onError(var3);
@@ -80,7 +80,7 @@ public class j {
         var2.put("errStr", var1.g);
         var2.put("transaction", var1.h);
         var3 = new Throwable((new Hashon()).fromHashMap(var2));
-        switch (var1.a()) {
+        switch(var1.a()) {
           case 1:
             if (this.d != null) {
               this.d.onError(var3);
@@ -97,7 +97,7 @@ public class j {
             return;
         }
       case -2:
-        switch (var1.a()) {
+        switch(var1.a()) {
           case 1:
             if (this.d != null) {
               this.d.onCancel();
@@ -114,7 +114,7 @@ public class j {
             return;
         }
       case 0:
-        switch (var1.a()) {
+        switch(var1.a()) {
           case 1:
             if (this.d != null) {
               Bundle var4 = new Bundle();
@@ -130,6 +130,7 @@ public class j {
             }
         }
     }
+
   }
 
   public ShareParams a() {

@@ -56,8 +56,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   void authToWechat(BuildContext context) {
+    var settings = {'appKey': 'wx4868b35061f87885'};
+
     SharesdkPlugin.auth(
-        ShareSDKPlatforms.wechatSession, null, (SSDKResponseState state,
+        ShareSDKPlatforms.wechatSession, settings, (SSDKResponseState state,
         Map user, SSDKError error) {
       showAlert(state, user != null ? user : error.rawData, context);
     });

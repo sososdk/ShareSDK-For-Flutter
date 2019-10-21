@@ -108,6 +108,7 @@ public class k {
     String var15 = var3.getExtInfo();
     String var16;
     String var17;
+    String var19;
     switch(var5) {
       case 1:
         this.a(var6, var7, var8, var1);
@@ -119,6 +120,25 @@ public class k {
           this.a(MobSDK.getContext(), var6, var7, var11, var8, var1);
         } else if (var10 != null && var10.length() > 0) {
           var16 = BitmapHelper.downloadBitmap(MobSDK.getContext(), var10);
+
+          try {
+            if (!TextUtils.isEmpty(var16)) {
+              File var25 = new File(var16);
+              if (var25 != null) {
+                File var23 = var25.getParentFile();
+                if (var23 != null && var23.isDirectory()) {
+                  var19 = var23.getAbsolutePath();
+                  File var26 = new File(var19, ".nomedia");
+                  if (var26 != null && (!var26.exists() || !var26.isFile())) {
+                    var26.createNewFile();
+                  }
+                }
+              }
+            }
+          } catch (Throwable var21) {
+            SSDKLog.b().d("when share iamge wechat that create nomedia catch " + var21, new Object[0]);
+          }
+
           this.a(MobSDK.getContext(), var6, var7, var16, var8, var1);
         } else {
           this.a(MobSDK.getContext(), var6, var7, "", var8, var1);
@@ -128,8 +148,8 @@ public class k {
       case 10:
       default:
         if (var4 != null) {
-          IllegalArgumentException var22 = new IllegalArgumentException("shareType = " + var5);
-          var4.onError(var2, 9, var22);
+          IllegalArgumentException var24 = new IllegalArgumentException("shareType = " + var5);
+          var4.onError(var2, 9, var24);
         }
         break;
       case 4:
@@ -150,7 +170,7 @@ public class k {
         var16 = var12 + " " + var13;
         var17 = var2.getShortLintk(var16, false);
         String var18 = var17.split(" ")[0];
-        String var19 = var17.split(" ")[1];
+        var19 = var17.split(" ")[1];
         if (var9 != null && var9.length() > 0) {
           this.a(MobSDK.getContext(), var6, var7, var18, var19, var9, var8, var1);
         } else if (var11 != null && !var11.isRecycled()) {
@@ -224,8 +244,8 @@ public class k {
         if (var9 != null && var9.length() > 0) {
           this.b(MobSDK.getContext(), var6, var7, var9, var8, var1);
         } else if (var10 != null && var10.length() > 0) {
-          NetworkHelper var21 = new NetworkHelper();
-          var17 = var21.downloadCache(MobSDK.getContext(), var10, "images", true, (NetworkTimeOut)null);
+          NetworkHelper var22 = new NetworkHelper();
+          var17 = var22.downloadCache(MobSDK.getContext(), var10, "images", true, (NetworkTimeOut)null);
           this.b(MobSDK.getContext(), var6, var7, var17, var8, var1);
         } else if (var11 != null && !var11.isRecycled()) {
           this.b(MobSDK.getContext(), var6, var7, var11, var8, var1);
