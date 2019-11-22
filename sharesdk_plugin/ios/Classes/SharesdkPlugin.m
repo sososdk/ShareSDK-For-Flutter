@@ -133,7 +133,7 @@ typedef NS_ENUM(NSUInteger, PluginMethod) {
     NSDictionary *settings = args[@"settings"];
     if (type == SSDKPlatformSubTypeWechatSession && [settings isKindOfClass:[NSDictionary class]] && [[settings allKeys] containsObject:@"appKey"]) {
         [ShareSDK registPlatforms:^(SSDKRegister *platformsRegister) { //微信
-            [platformsRegister setupWeChatWithAppId:settings[@"appKey"] appSecret:nil];
+            [platformsRegister setupWeChatWithAppId:settings[@"appKey"] appSecret:nil  universalLink:nil];
         }];
         [WeChatConnector setRequestAuthTokenOperation:^(NSString *authCode, void (^getUserinfo)(NSString *uid, NSString *token)) {
             result(@{
