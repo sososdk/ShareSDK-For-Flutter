@@ -26,3 +26,17 @@
 ## 1.1.3
 
 * Android bug fix.
+
+## 1.1.4
+
+* Android add wechat file share
+
+## 1.1.5
+* Android  adapt to flutter sdk 1.9+
+
+## 1.1.6
+* Android Add to Douyin sharing function
+* Android Add to share video url for general interface
+
+## 1.1.7
+* iOS Add " Sign in with Apple"

@@ -1,33 +1,40 @@
 package com.yoozoo.sharesdk;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.mob.MobSDK;
+import com.mob.commons.SHARESDK;
+import com.mob.tools.utils.Hashon;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import cn.sharesdk.framework.Platform;
 import cn.sharesdk.framework.PlatformActionListener;
 import cn.sharesdk.framework.ShareSDK;
 import cn.sharesdk.framework.authorize.AuthorizeListener;
+import cn.sharesdk.framework.loopshare.LoopShareResultListener;
 import cn.sharesdk.onekeyshare.OnekeyShare;
 import cn.sharesdk.wechat.friends.Wechat;
-import cn.sharesdk.wechat.utils.b;
 import cn.sharesdk.wechat.utils.g;
 import cn.sharesdk.wechat.utils.j;
 import cn.sharesdk.wechat.utils.k;
-import com.mob.MobSDK;
-import com.mob.tools.utils.Hashon;
+import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * SharesdkPlugin
@@ -45,14 +52,86 @@ public class SharesdkPlugin implements MethodCallHandler {
     private static final String PluginMethodShowEditor = "showEditor";
     private static final String PluginMethodShowMenu = "showMenu";
     private static final String PluginMethodOpenMiniProgram = "openMiniProgram";
+    private static final String PluginMethodIsClientInstalled = "isClientInstalled";
+
+    private static final String EVENTCHANNEL = "SSDKRestoreReceiver";
+    private static EventChannel eventChannel;
+    private static EventChannel.EventSink outerEventSink;
+
+    private static Activity activity = null;
+
+    private static final String TAG = "SHARESDK";
 
 
     /**
      * Plugin registration.
      */
     public static void registerWith(PluginRegistry.Registrar registrar) {
+        //SharesdkPlugin instance = new SharesdkPlugin();
+
+        activity = registrar.activity();
+
         final MethodChannel channel = new MethodChannel(registrar.messenger(), "com.yoozoo.mob/sharesdk");
         channel.setMethodCallHandler(new SharesdkPlugin());
+
+        //eventChannel = new EventChannel(registrar.messenger(), EVENTCHANNEL);
+        //eventChannel.setStreamHandler(new SharesdkPlugin());
+        eventChannel = new EventChannel(registrar.messenger(), EVENTCHANNEL);
+        Log.e("WWW", " eventChannel " + eventChannel);
+        eventChannel.setStreamHandler(new EventChannel.StreamHandler() {
+
+            @Override
+            public void onListen(Object o, EventChannel.EventSink eventSink) {
+                Log.e("WWW", " onListen " + " Object " + o + " eventSink " + eventSink);
+                if (eventSink != null) {
+                    outerEventSink = eventSink;
+                    Log.e("WWW", "onListen ===> outerEventSink " + outerEventSink);
+                } else {
+                    Log.e("WWW", "onListen ===> eventSink is null ");
+                }
+
+            }
+
+            @Override
+            public void onCancel(Object o) {
+                Log.e("WWW", " onCancel " + " Object " + o);
+            }
+        });
+
+        //setChannelId
+        MobSDK.setChannel(new SHARESDK(), MobSDK.CHANNEL_FLUTTER);
+
+        /**
+         * loopshare init and set Listener
+         * **/
+        ShareSDK.prepareLoopShare(new LoopShareResultListener() {
+            @Override
+            public void onResult(Object var1) {
+                String test = new Hashon().fromHashMap((HashMap<String, Object>) var1);
+                Log.e("WWW", "LoopShareResultListener onResult " + test);
+
+                if (outerEventSink != null) {
+                    HashMap<String, Object> map = new HashMap<>();
+                    map.put("innerMapOneKey", "innerMapOneValue");
+                    map.put("innerMapTwoKey", "innerMapTwoValue");
+
+                    HashMap<String, Object> outer = new HashMap<String, Object>();
+                    outer.put("path", "outPathValue");
+                    outer.put("params", map);
+                    outerEventSink.success(outer);
+                    Log.e("WWW", "LoopShareResultListener onResult outerEventSink.success is ok");
+                } else {
+                    Log.e("WWW", "LoopShareResultListener onResult outerEventSink is null");
+                }
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                Log.e("WWW", "LoopShareResultListener onError " + t);
+            }
+        });
+        Log.e("WWW", " ShareSDK.prepareLoopShare() successed ");
+
     }
 
     @Override
@@ -93,20 +172,26 @@ public class SharesdkPlugin implements MethodCallHandler {
                 //shareMiniProgramWithArgs(call, result);
                 openMinProgramWithArgs(call, result);
                 break;
-
+            case PluginMethodIsClientInstalled:
+                isClientInstalled(call, result);
+                break;
             default:
                 break;
         }
     }
 
-    /** 获取版本 **/
+    /**
+     * 获取版本
+     **/
     private void getVersion(MethodCall call, Result result) {
         Map<String, Object> map = new HashMap<>();
         map.put("版本号", "3.6.1");
         result.success(map);
     }
 
-    /** 分享 **/
+    /**
+     * 分享
+     **/
     private void shareWithArgs(MethodCall call, final Result rawResult) {
         final MethodChannel.Result result = new MethodResultWrapper(rawResult);
 
@@ -134,12 +219,14 @@ public class SharesdkPlugin implements MethodCallHandler {
         String site;
         String siteUrl;
 
+        String filePath;
+
         HashMap<String, Object> map = call.arguments();
         final String num = String.valueOf(map.get("platform"));
 
-        HashMap<String, Object> params = (HashMap<String, Object>) map.get("params");
+        final HashMap<String, Object> params = (HashMap<String, Object>) map.get("params");
 
-        HashMap<String, Object> platMap = (HashMap<String, Object>) params.get("@platform(" + num +")" );
+        HashMap<String, Object> platMap = (HashMap<String, Object>) params.get("@platform(" + num + ")");
         if (platMap == null) {
             imageUrl = String.valueOf(params.get("imageUrl_android"));
             imagePath = String.valueOf(params.get("imagePath_android"));
@@ -164,6 +251,8 @@ public class SharesdkPlugin implements MethodCallHandler {
             sina_displayname = String.valueOf(params.get("sina_displayname"));
             site = String.valueOf(params.get("site"));
             siteUrl = String.valueOf(params.get("siteUrl"));
+
+            filePath = String.valueOf(params.get("filePath"));
 
         } else {
             imageUrl = String.valueOf(platMap.get("imageUrl_android"));
@@ -190,12 +279,23 @@ public class SharesdkPlugin implements MethodCallHandler {
             site = String.valueOf(platMap.get("site"));
             siteUrl = String.valueOf(platMap.get("siteUrl"));
 
+            filePath = String.valueOf(platMap.get("filePath"));
+
         }
 
         String platName = Utils.platName(num);
 
         Platform platform = ShareSDK.getPlatform(platName);
         Platform.ShareParams shareParams = new Platform.ShareParams();
+
+        if (platName.equals("Douyin")) {
+            if (activity != null) {
+                shareParams.setActivity(activity);
+            } else {
+                Log.e(TAG, "SharesdkPlugin that activity is null");
+            }
+        }
+
         if (!(title.equals("null") || title == null)) {
             shareParams.setTitle(title);
         }
@@ -223,6 +323,11 @@ public class SharesdkPlugin implements MethodCallHandler {
         if (!(fileData.equals("null") || fileData == null)) {
             shareParams.setFilePath(fileData);
         }
+        if (!(filePath.equals("null") || filePath == null)) {
+            shareParams.setFilePath(filePath);
+            Log.e("WWW", " filePath===》 " + filePath);
+        }
+
         if (!(wxmpType == null || wxmpType.isEmpty() || wxmpType.equals("null"))) {
             shareParams.setWxMiniProgramType(Integer.valueOf(wxmpType));
         }
@@ -296,14 +401,14 @@ public class SharesdkPlugin implements MethodCallHandler {
         platform.setPlatformActionListener(new PlatformActionListener() {
             @Override
             public void onComplete(Platform platform, int i, HashMap<String, Object> hashMap) {
-                Map<String, Object> map = new HashMap<>();
+                final Map<String, Object> map = new HashMap<>();
                 map.put("state", 1);
                 result.success(map);
             }
 
             @Override
             public void onError(Platform platform, int i, Throwable throwable) {
-                Map<String, Object> map = new HashMap<>();
+                final Map<String, Object> map = new HashMap<>();
                 map.put("state", 2);
 
                 HashMap<String, Object> errorMap = new HashMap<>();
@@ -321,7 +426,7 @@ public class SharesdkPlugin implements MethodCallHandler {
 
             @Override
             public void onCancel(Platform platform, int i) {
-                Map<String, Object> map = new HashMap<>();
+                final Map<String, Object> map = new HashMap<>();
                 map.put("state", 3);
                 result.success(map);
             }
@@ -329,14 +434,16 @@ public class SharesdkPlugin implements MethodCallHandler {
         platform.share(shareParams);
     }
 
-    /** 打开微信小程序 **/
+    /**
+     * 打开微信小程序
+     **/
     private void openMinProgramWithArgs(MethodCall call, Result result) {
         HashMap<String, Object> map = call.arguments();
         //int type =Integer.valueOf(map.get("type"));
         String typeStr = String.valueOf(map.get("type"));
         int type = Integer.valueOf(typeStr);
-        String path =String.valueOf(map.get("path"));
-        String userName =String.valueOf(map.get("userName"));
+        String path = String.valueOf(map.get("path"));
+        String userName = String.valueOf(map.get("userName"));
 
         Platform wexin = ShareSDK.getPlatform("Wechat");
         Platform.ShareParams sp = new Platform.ShareParams();
@@ -349,7 +456,9 @@ public class SharesdkPlugin implements MethodCallHandler {
 
     }
 
-    /** 分享微信小程序 **/
+    /**
+     * 分享微信小程序
+     **/
     private void shareMiniProgramWithArgs(MethodCall call, Result result) {
         HashMap<String, Object> map = call.arguments();
         String num = String.valueOf(map.get("platform"));
@@ -381,11 +490,13 @@ public class SharesdkPlugin implements MethodCallHandler {
         Log.e("SharesdkPlugin", " plat " + platform + " ====> " + call.arguments.toString());
     }
 
-    /** 授权 **/
+    /**
+     * 授权
+     **/
     private void authWithArgs(MethodCall call, Result rawResult) {
-      final MethodChannel.Result result = new MethodResultWrapper(rawResult);
+        final MethodChannel.Result result = new MethodResultWrapper(rawResult);
 
-      HashMap<String, Object> params = call.arguments();
+        HashMap<String, Object> params = call.arguments();
         String num = String.valueOf(params.get("platform"));
         Map<String, Object> settings = call.argument("settings");
 
@@ -403,53 +514,53 @@ public class SharesdkPlugin implements MethodCallHandler {
             var4.a(var3);
             var4.a(new AuthorizeListener() {
                 public void onError(Throwable throwable) {
-                  Map<String, Object> map = new HashMap<>();
-                  map.put("state", 2);
-                  HashMap<String, Object> errorMap = new HashMap<>();
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("state", 2);
+                    HashMap<String, Object> errorMap = new HashMap<>();
 
-                  if (throwable.getMessage() != null) {
-                    errorMap.put("error", throwable.getMessage());
-                  } else if (throwable.getCause() != null) {
-                    errorMap.put("error", String.valueOf(throwable.getCause()));
-                  } else if (throwable != null) {
-                    errorMap.put("error", String.valueOf(throwable));
-                  }
-                  map.put("error", errorMap);
-                  result.success(map);
+                    if (throwable.getMessage() != null) {
+                        errorMap.put("error", throwable.getMessage());
+                    } else if (throwable.getCause() != null) {
+                        errorMap.put("error", String.valueOf(throwable.getCause()));
+                    } else if (throwable != null) {
+                        errorMap.put("error", String.valueOf(throwable));
+                    }
+                    map.put("error", errorMap);
+                    result.success(map);
                 }
 
                 public void onComplete(final Bundle values) {
-                  Map<String, Object> map = new HashMap<>();
-                  map.put("state", 1);
-                  map.put("user", new HashMap<String, String>() {{
-                      put("code", values.getString("_wxapi_sendauth_resp_token"));
-                  }});
-                  result.success(map);
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("state", 1);
+                    map.put("user", new HashMap<String, String>() {{
+                        put("code", values.getString("_wxapi_sendauth_resp_token"));
+                    }});
+                    result.success(map);
                 }
 
                 public void onCancel() {
-                  Map<String, Object> map = new HashMap<>();
-                  map.put("state", 3);
-                  result.success(map);
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("state", 3);
+                    result.success(map);
                 }
             });
 
             try {
                 var2.a(var4);
             } catch (Throwable throwable) {
-              Map<String, Object> map = new HashMap<>();
-              map.put("state", 2);
-              HashMap<String, Object> errorMap = new HashMap<>();
+                Map<String, Object> map = new HashMap<>();
+                map.put("state", 2);
+                HashMap<String, Object> errorMap = new HashMap<>();
 
-              if (throwable.getMessage() != null) {
-                errorMap.put("error", throwable.getMessage());
-              } else if (throwable.getCause() != null) {
-                errorMap.put("error", String.valueOf(throwable.getCause()));
-              } else if (throwable != null) {
-                errorMap.put("error", String.valueOf(throwable));
-              }
-              map.put("error", errorMap);
-              result.success(map);
+                if (throwable.getMessage() != null) {
+                    errorMap.put("error", throwable.getMessage());
+                } else if (throwable.getCause() != null) {
+                    errorMap.put("error", String.valueOf(throwable.getCause()));
+                } else if (throwable != null) {
+                    errorMap.put("error", String.valueOf(throwable));
+                }
+                map.put("error", errorMap);
+                result.success(map);
             }
         } else {
             doAuthorize(platName, result);
@@ -475,8 +586,8 @@ public class SharesdkPlugin implements MethodCallHandler {
                 }
 
                 @Override
-                public void onError(Platform platform, int i, Throwable throwable) {
-                    Map<String, Object> map = new HashMap<>();
+                public void onError(Platform platform, int i, final Throwable throwable) {
+                    final Map<String, Object> map = new HashMap<>();
                     map.put("state", 2);
                     HashMap<String, Object> errorMap = new HashMap<>();
 
@@ -493,7 +604,7 @@ public class SharesdkPlugin implements MethodCallHandler {
 
                 @Override
                 public void onCancel(Platform platform, int i) {
-                    Map<String, Object> map = new HashMap<>();
+                    final Map<String, Object> map = new HashMap<>();
                     map.put("state", 3);
                     result.success(map);
                     //result.error(null, null, map);
@@ -504,8 +615,10 @@ public class SharesdkPlugin implements MethodCallHandler {
         }
     }
 
-    /** 取消授权 **/
-    private void cancelAuth(MethodCall call, Result result) {
+    /**
+     * 取消授权
+     **/
+    private void cancelAuth(MethodCall call, final Result result) {
         String platStr = Utils.platName(String.valueOf(call.arguments()));
         Platform platform = ShareSDK.getPlatform(platStr);
 
@@ -513,12 +626,12 @@ public class SharesdkPlugin implements MethodCallHandler {
             if (platform.isAuthValid()) {
                 platform.removeAccount(true);
                 Log.e("QQQ", " 我已经取消了授权 ");
-                Map<String, Object> map = new HashMap<>();
+                final Map<String, Object> map = new HashMap<>();
                 map.put("state", 1);
                 result.success(map);
             } else {
                 Log.e("QQQ", " 您还没有授权，请先授权 ");
-                Map<String, Object> map = new HashMap<>();
+                final Map<String, Object> map = new HashMap<>();
                 map.put("state", 2);
                 HashMap<String, Object> errorMap = new HashMap<>();
                 errorMap.put("error", "您还没有授权，请先授权");
@@ -528,20 +641,22 @@ public class SharesdkPlugin implements MethodCallHandler {
         }
     }
 
-    /** 判断是否授权 **/
-    private void hasAuthed(MethodCall call, Result result) {
+    /**
+     * 判断是否授权
+     **/
+    private void hasAuthed(MethodCall call, final Result result) {
         String platStr = Utils.platName(String.valueOf(call.arguments));
         Platform platform = ShareSDK.getPlatform(platStr);
         if (platform != null) {
             if (platform.isAuthValid()) {
-                Map<String, Object> map = new HashMap<>();
+                final Map<String, Object> map = new HashMap<>();
                 map.put("state", 1);
                 HashMap<String, Object> reMap = new HashMap<>();
                 reMap.put("true", "授权了");
                 map.put("user", reMap);
                 result.success(map);
             } else {
-                Map<String, Object> map = new HashMap<>();
+                final Map<String, Object> map = new HashMap<>();
                 map.put("state", 2);
                 HashMap<String, Object> reMap = new HashMap<>();
                 reMap.put("false", "没有授权");
@@ -549,7 +664,7 @@ public class SharesdkPlugin implements MethodCallHandler {
                 result.success(map);
             }
         } else {
-            HashMap<String, Object> map = new HashMap<>();
+            final HashMap<String, Object> map = new HashMap<>();
             map.put("state", 2);
             HashMap<String, Object> errorMap = new HashMap<>();
             errorMap.put("error", "平台为空");
@@ -558,7 +673,9 @@ public class SharesdkPlugin implements MethodCallHandler {
         }
     }
 
-    /** 分享菜单 **/
+    /**
+     * 分享菜单
+     **/
     private void showMenuWithArgs(MethodCall call, Result result) {
         HashMap<String, Object> map = call.arguments();
         HashMap<String, Object> params = (HashMap<String, Object>) map.get("params");
@@ -610,7 +727,9 @@ public class SharesdkPlugin implements MethodCallHandler {
         Log.e("SharesdkPlugin", call.arguments.toString());
     }
 
-    /** 获得用户信息 **/
+    /**
+     * 获得用户信息
+     **/
     private void getUserInfoWithArgs(MethodCall call, Result result) {
         HashMap<String, Object> params = call.arguments();
         String num = String.valueOf(params.get("platform"));
@@ -621,7 +740,7 @@ public class SharesdkPlugin implements MethodCallHandler {
     }
 
 
-    private void doUserInfo(Platform platform,final Result rawResult) {
+    private void doUserInfo(Platform platform, final Result rawResult) {
         final MethodChannel.Result result = new MethodResultWrapper(rawResult);
 
         if (platform != null) {
@@ -634,7 +753,7 @@ public class SharesdkPlugin implements MethodCallHandler {
             platform.setPlatformActionListener(new PlatformActionListener() {
                 @Override
                 public void onComplete(Platform platform, int i, HashMap<String, Object> hashMap) {
-                    HashMap<String, Object> userMap = new HashMap<>();
+                    final HashMap<String, Object> userMap = new HashMap<>();
 
                     if (platform.getDb().exportData() != null) {
                         hashMap.clear();
@@ -649,7 +768,7 @@ public class SharesdkPlugin implements MethodCallHandler {
 
                 @Override
                 public void onError(Platform platform, int i, Throwable throwable) {
-                    HashMap<String, Object> map = new HashMap<>();
+                    final HashMap<String, Object> map = new HashMap<>();
                     map.put("state", 2);
 
                     HashMap<String, Object> errorMap = new HashMap<>();
@@ -668,7 +787,7 @@ public class SharesdkPlugin implements MethodCallHandler {
 
                 @Override
                 public void onCancel(Platform platform, int i) {
-                    Map<String, Object> map = new HashMap<>();
+                    final Map<String, Object> map = new HashMap<>();
                     map.put("state", 3);
                     result.success(map);
                     //result.error(null, null, map);
@@ -676,6 +795,30 @@ public class SharesdkPlugin implements MethodCallHandler {
             });
         }
     }
+
+
+    /**
+     * 判断客户端是否有效
+     **/
+    private void isClientInstalled(MethodCall call, final Result rawResult) {
+        MethodResultWrapper result = new MethodResultWrapper(rawResult);
+
+        HashMap<String, Object> map = call.arguments();
+        String num = String.valueOf(map.get("platform"));
+        String platName = Utils.platName(num);
+        Platform platform = ShareSDK.getPlatform(platName);
+        boolean clientValid = platform.isClientValid();
+        if (clientValid) {
+            final Map<String, Object> resMapSucceed = new HashMap<>();
+            resMapSucceed.put("state", "installed");
+            result.success(resMapSucceed);
+        } else {
+            final Map<String, Object> resMapFail = new HashMap<>();
+            resMapFail.put("state", "uninstalled");
+            result.success(resMapFail);
+        }
+    }
+
 
     // MethodChannel.Result wrapper that responds on the platform thread.
     private static class MethodResultWrapper implements MethodChannel.Result {
@@ -690,35 +833,35 @@ public class SharesdkPlugin implements MethodCallHandler {
         @Override
         public void success(final Object result) {
             handler.post(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        methodResult.success(result);
-                    }
-                });
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            methodResult.success(result);
+                        }
+                    });
         }
 
         @Override
         public void error(
-            final String errorCode, final String errorMessage, final Object errorDetails) {
+                final String errorCode, final String errorMessage, final Object errorDetails) {
             handler.post(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        methodResult.error(errorCode, errorMessage, errorDetails);
-                    }
-                });
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            methodResult.error(errorCode, errorMessage, errorDetails);
+                        }
+                    });
         }
 
         @Override
         public void notImplemented() {
             handler.post(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        methodResult.notImplemented();
-                    }
-                });
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            methodResult.notImplemented();
+                        }
+                    });
         }
     }
 }

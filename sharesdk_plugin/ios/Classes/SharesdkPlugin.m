@@ -1,31 +1,49 @@
 #import "SharesdkPlugin.h"
 #import <ShareSDK/ShareSDKHeader.h>
 #import <ShareSDKExtension/ShareSDK+Extension.h>
+#import <MOBFoundation/MOBFoundation.h>
 #import <objc/message.h>
 #import <WechatConnector/WechatConnector.h>
 
 typedef NS_ENUM(NSUInteger, PluginMethod) {
-    PluginMethodGetVersion,
-    PluginMethodShare,
-    PluginMethodAuth,
-    PluginMethodHasAuthed,
-    PluginMethodCancelAuth,
-    PluginMethodGetUserInfo,
-    PluginMethodRegist,
-    PluginMethodShowMenu,
-    PluginMethodShowEditor,
-    PluginMethodOpenMiniProgram,
-    PluginMethodActivePlatforms,
-    PluginMethodIsClientInstalled,
+    PluginMethodGetVersion          = 0,
+    PluginMethodShare               = 1,
+    PluginMethodAuth                = 2,
+    PluginMethodHasAuthed           = 3,
+    PluginMethodCancelAuth          = 4,
+    PluginMethodGetUserInfo         = 5,
+    PluginMethodRegist              = 6,
+    PluginMethodShowMenu            = 7,
+    PluginMethodShowEditor          = 8,
+    PluginMethodOpenMiniProgram     = 9,
+    PluginMethodActivePlatforms     = 10,
+    PluginMethodIsClientInstalled   = 11,
+
 };
 
-@interface SharesdkPlugin()
+@interface SharesdkPlugin()<FlutterStreamHandler,ISSERestoreSceneDelegate>
 
 @property (strong, nonatomic) NSDictionary *methodMap;
+
+// 事件回调
+@property (nonatomic, copy) void (^callBack) (id _Nullable event);
 
 @end
 
 @implementation SharesdkPlugin
+
++ (void)load{
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        SEL sel = sel_registerName("addChannelWithSdkName:channel:");
+        Method method = class_getClassMethod([MobSDK class],sel) ;
+        if (method && method_getImplementation(method) != _objc_msgForward) {
+            ((void (*)(id, SEL,id,id))objc_msgSend)([MobSDK class],sel,@"SHARESDK",@"4");
+        }
+    });
+}
+
+static NSString *const receiverStr = @"SSDKRestoreReceiver";
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
     FlutterMethodChannel* channel = [FlutterMethodChannel
@@ -44,9 +62,15 @@ typedef NS_ENUM(NSUInteger, PluginMethod) {
                            @"showEditor":@(PluginMethodShowEditor),
                            @"showMenu":@(PluginMethodShowMenu),
                            @"openMiniProgram":@(PluginMethodOpenMiniProgram),
-                           @"isClientInstalled":@(PluginMethodIsClientInstalled)
+                           @"isClientInstalled":@(PluginMethodIsClientInstalled),
+
                            };
     [registrar addMethodCallDelegate:instance channel:channel];
+    
+    FlutterEventChannel* e_channel = [FlutterEventChannel eventChannelWithName:receiverStr binaryMessenger:[registrar messenger]];
+    [e_channel setStreamHandler:instance];
+    
+    [instance addObserver];
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
@@ -167,14 +191,34 @@ typedef NS_ENUM(NSUInteger, PluginMethod) {
 
 - (void)_hasAuthedWithArgs:(NSNumber *)args result:(FlutterResult)result
 {
-    result(@([ShareSDK hasAuthorized:args.integerValue]));
+    NSInteger state = SSDKResponseStateFail;
+    BOOL hasAuthed = [ShareSDK hasAuthorized:args.integerValue];
+    if (hasAuthed)
+    {
+        state = SSDKResponseStateSuccess;
+    }
+    NSDictionary *dic = @{
+                          @"state":@(state),
+                          @"user":[NSNull null],
+                          @"error":[NSNull null]
+                          };
+    result(dic);
 }
 
 - (void)_cancelAuthWithArgs:(NSNumber *)args result:(FlutterResult)result
 {
     [ShareSDK cancelAuthorize:args.integerValue result:^(NSError *error) {
-        
-        result([self _covertError:error]);
+        NSInteger state = SSDKResponseStateFail;
+        if (error == nil)
+        {
+            state = SSDKResponseStateSuccess;
+        }
+        NSDictionary *dic = @{
+                              @"state":@(state),
+                              @"user":[NSNull null],
+                              @"error":[self _covertError:error]
+                              };
+        result(dic);
     }];
 }
 
@@ -363,5 +407,59 @@ typedef NS_ENUM(NSUInteger, PluginMethod) {
     SSDKPlatformType type = [args[@"platform"] integerValue];
     result(@([ShareSDK isClientInstalled:type]));
 }
+
+
+#pragma mark - FlutterStreamHandler Protocol
+
+- (FlutterError *)onListenWithArguments:(id)arguments eventSink:(FlutterEventSink)events
+{
+    self.callBack = events;
+    return nil;
+}
+
+- (FlutterError * _Nullable)onCancelWithArguments:(id _Nullable)arguments
+{
+    return nil;
+}
+
+
+#pragma mark - 场景还原 添加监听
+- (void)addObserver
+{
+    [ShareSDK setRestoreSceneDelegate:self];
+}
+
+#pragma mark - ISSERestoreSceneDelegate
+
+/**
+ 闭环分享代理回调
+ 
+ */
+- (void)ISSEWillRestoreScene:(SSERestoreScene *)scene error:(NSError *)error
+{
+    NSMutableDictionary *resultDict = [NSMutableDictionary dictionary];
+       
+    if (scene.path.length > 0)
+    {
+        resultDict[@"path"] = scene.path;
+    }
+       
+    if (scene.params && scene.params.count > 0)
+    {
+        resultDict[@"params"] = scene.params;
+    }
+       
+    NSString *resultStr  = @"";
+    if (resultDict.count > 0)
+    {
+        resultStr = [MOBFJson jsonStringFromObject:resultDict];
+    }
+    if (self.callBack)
+    {
+        self.callBack(resultDict);
+    }
+}
+
+
 
 @end

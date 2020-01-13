@@ -1,8 +1,8 @@
 apply plugin: 'com.mob.sdk'
 
 MobSDK {
-    appKey "moba6b6c6d6"
-    appSecret "b89d2427a3bc7ad1aea1e1e8c1d36bf3"
+    appKey "moba0b0c0d0"
+    appSecret "5713f0d88511f9f4cf100cade0610a34"
 
     ShareSDK {
 
@@ -434,6 +434,15 @@ MobSDK {
                 appKey "579465512480462"
                 appSecret "8a6383652dd9f23fb0994f03d350d0ca"
                 callbackUri "http://www.sharesdk.cn/"
+                enable true
+            }
+
+            Douyin {
+                id 59
+                sortId 1
+                appKey "aw9ivykfjvi4hpwo"
+                appSecret "42b4caa6bda60bd49f05f06d0a4956e1"
+                callbackAct "cn.sharesdk.demo.MainActivity"
                 enable true
             }
 
