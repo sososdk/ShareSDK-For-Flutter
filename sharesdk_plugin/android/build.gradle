@@ -59,6 +59,7 @@ dependencies {
 
 MobSDK {
     ShareSDK {
+        version '3.6.8'
         loopShare true
     }
 }
