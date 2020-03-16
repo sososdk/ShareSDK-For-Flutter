@@ -21,6 +21,21 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+buildscript {
+    repositories {
+        google()
+        jcenter()
+        maven {
+            url "http://mvn.mob.com/android"
+        }
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.5.3'
+        classpath 'com.mob.sdk:MobSDK:+'
+    }
+}
+
 apply plugin: 'com.android.application'
 apply plugin: 'jar-filter'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
@@ -37,7 +52,7 @@ jarFilters {
 }
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
 
     lintOptions {
         disable 'InvalidPackage'
