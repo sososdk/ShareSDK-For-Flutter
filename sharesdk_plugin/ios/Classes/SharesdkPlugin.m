@@ -397,9 +397,12 @@ static NSString *const receiverStr = @"SSDKRestoreReceiver";
 {
     Class connector = NSClassFromString(@"WeChatConnector");
     NSAssert(connector != NULL, @"Need to import WechatConnector.framework !");
-    SEL openMiniProgramSEL = NSSelectorFromString(@"openMiniProgramWithUserName:path:miniProgramType:");
-    BOOL opened = ((BOOL(*)(id,SEL,NSString *,NSString *,int))objc_msgSend)(connector,openMiniProgramSEL,args[@"userName"],args[@"path"],[args[@"type"] intValue]);
-    result(@(opened));
+    
+    void(^ complete)(BOOL) = ^(BOOL success) {
+        result(@(success));
+    };
+    SEL openMiniProgramSEL = NSSelectorFromString(@"openMiniProgramWithUserName:path:miniProgramType:complete:");
+    ((void(*)(id,SEL,NSString *,NSString *,int,id))objc_msgSend)(connector,openMiniProgramSEL,args[@"userName"],args[@"path"],[args[@"type"] intValue],complete);
 }
 
 - (void)_isClientInstalledWithArgs:(NSDictionary *)args result:(FlutterResult)result
